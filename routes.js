@@ -2,9 +2,19 @@ const express = require('express');
 const router = express.Router();
 const usuarios = require('./data');
 
+// Middleware de autenticación
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    if (!authHeader || authHeader !== process.env.AUTH_TOKEN) {
+        return res.status(403).json({ mensaje: 'Acceso no autorizado' });
+    }
+    next();
+};
+
 // Endpoint: Obtener todos los usuarios y aplicar filtros
-router.get('/usuarios', (req, res) => {
-    const { nombre, edad } = req.query;
+router.get('/usuarios', authenticateToken, (req, res) => {
+    const { nombre, edad, page = 1, limit = 10 } = req.query;
+    console.log(req.query);
     let filteredusuarios = usuarios;
 
     if (nombre) {
@@ -18,7 +28,16 @@ router.get('/usuarios', (req, res) => {
         return res.status(404).send('No se encontraron usuarios con los parámetros de búsqueda');
     }
 
-    res.status(200).json(filteredusuarios);
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedUsuarios = filteredusuarios.slice(startIndex, endIndex);
+
+    res.status(200).json({
+        total: filteredusuarios.length,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        data: paginatedUsuarios
+    });
 });
 
 // Endpoint: Obtener un usuario por ID
