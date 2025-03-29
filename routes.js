@@ -14,7 +14,6 @@ const authenticateToken = (req, res, next) => {
 // Endpoint: Obtener todos los usuarios y aplicar filtros
 router.get('/usuarios', authenticateToken, (req, res) => {
     const { nombre, edad, page = 1, limit = 10 } = req.query;
-    console.log(req.query);
     let filteredusuarios = usuarios;
 
     if (nombre) {
@@ -80,6 +79,16 @@ router.delete('/usuarios/:id', (req, res) => {
 
   usuarios.splice(index, 1);
   res.send('Usuario eliminado');
+});
+
+// Endpoint: Eliminar todos los usuarios
+router.delete('/usuarios', authenticateToken, (req, res) => {
+    const totalUsuarios = usuarios.length;
+    usuarios.length = 0;
+    res.json({ 
+        mensaje: 'Todos los usuarios han sido eliminados',
+        usuariosEliminados: totalUsuarios 
+    });
 });
 
 module.exports = router;
